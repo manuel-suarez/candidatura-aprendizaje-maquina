@@ -40,3 +40,11 @@ for i, filename in enumerate(os.listdir(os.path.join(root_folder, img_dir, base_
     axs[i, 1].imshow(depth)
     axs[i, 2].imshow(haze)
 plt.show()
+
+# Preparamos directorios donde pondremos los diferentes niveles de hazing
+for dirname in base_dir:
+    if not os.path.isdir(os.path.join(root_folder,img_dir,dirname,'haze')):
+        os.mkdir(os.path.join(root_folder,img_dir,dirname,'haze'))
+        os.mkdir(os.path.join(root_folder,img_dir,dirname,'haze','beta05'))
+        os.mkdir(os.path.join(root_folder,img_dir,dirname,'haze','beta15'))
+        os.mkdir(os.path.join(root_folder,img_dir,dirname,'haze','beta25'))
