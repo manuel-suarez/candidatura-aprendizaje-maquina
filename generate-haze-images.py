@@ -76,3 +76,28 @@ for beta, dirbeta in zip(betas, dirbetas):
             img = Image.fromarray(np.clip(np.uint8(haze), 0, 255))
             img.save(os.path.join(root_folder,img_dir,basedir,'haze',dirbeta,filename))
 print("Done!")
+
+# Visualización de los niveles de hazing
+fig, axs = plt.subplots(3, 5, figsize=(8, 12))
+for i, filename in enumerate(os.listdir(os.path.join(root_folder,img_dir,base_dir[0],clean_dir))[:3]):
+    # Image
+    img = np.array(Image.open(os.path.join(root_folder,img_dir,base_dir[0],clean_dir,filename)))
+    # Depth map
+    depthname = filename.split(".")[0]+".png"
+    depth = np.array(Image.open(os.path.join(root_folder,img_dir,base_dir[0],depth_dir,depthname)))
+    # Haze image
+    haze_b05 = np.array(Image.open(os.path.join(root_folder,img_dir,base_dir[0],'haze',dirbetas[0],filename)))
+    haze_b15 = np.array(Image.open(os.path.join(root_folder,img_dir,base_dir[0],'haze',dirbetas[1],filename)))
+    haze_b25 = np.array(Image.open(os.path.join(root_folder,img_dir,base_dir[0],'haze',dirbetas[2],filename)))
+    # Max-min
+    print(np.max(img), np.min(img))
+    print(np.max(depth), np.min(depth))
+    print(np.max(haze), np.min(haze))
+    # Plotting
+    axs[i, 0].imshow(img)
+    axs[i, 1].imshow(depth)
+    axs[i, 2].imshow(haze_b05)
+    axs[i, 3].imshow(haze_b15)
+    axs[i, 4].imshow(haze_b25)
+plt.axis("off")
+plt.show()
