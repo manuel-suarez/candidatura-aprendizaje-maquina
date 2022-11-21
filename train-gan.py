@@ -480,3 +480,12 @@ ax[1,0].set_title('Generator val loss')
 ax[1,1].plot(history['test_disc_loss'][:100])
 ax[1,1].set_title('Discriminator val loss')
 plt.savefig("figura9.png")
+
+# Verificación del resultado del entrenamiento sobre el conjunto de datos de prueba
+# Reestablecemos el último checkpoint generado
+chkpnt = tf.train.latest_checkpoint(checkpoint_dir)
+chkpnt = './training_checkpoints/ckpt-1'
+checkpoint.restore(chkpnt)
+
+for xl, xr, y in test_xy.take(8):
+    generate_images(generator, xl, xr, y)
