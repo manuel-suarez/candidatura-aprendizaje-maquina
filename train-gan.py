@@ -487,5 +487,7 @@ chkpnt = tf.train.latest_checkpoint(checkpoint_dir)
 chkpnt = './training_checkpoints/ckpt-1'
 checkpoint.restore(chkpnt)
 
-for xl, xr, y in test_xy.take(8):
-    generate_images(generator, xl, xr, y)
+step = 1
+for x, y in test_xy.take(8):
+    generate_images(f"testing_step{step}.png", generator, x, y)
+    step += 1
