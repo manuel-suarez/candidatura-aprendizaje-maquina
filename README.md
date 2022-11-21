@@ -11,4 +11,4 @@
 ## Scripts
 
 - **generate-haze-images.py**: agrega el elemento de niebla al conjunto de imágenes de acuerdo con el modelo en https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=5567108
-
+- **train-gan.py**: entrenamiento con un modelo pix2pix para dehazing
