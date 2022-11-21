@@ -23,8 +23,8 @@ INITIAL_EPOCH = 0
 
 # Definición y configuración de las rutas
 local_dir = '/home/est_posgrado_manuel.suarez/data/ReDWeb-S/trainset'
-x_files  = glob(os.path.join(local_dir, 'RGB', '*.jpg'))
-y_files  = glob(os.path.join(local_dir, 'haze', 'beta05', '*.jpg'))
+x_files  = glob(os.path.join(local_dir, 'haze', 'beta05', '*.jpg'))
+y_files  = glob(os.path.join(local_dir, 'RGB', '*.jpg'))
 x_files.sort()
 y_files.sort()
 x_files=np.array(x_files)
@@ -342,7 +342,7 @@ def generate_images(figname, model, x_input, y_input):
 
     plt.figure(figsize=(15, 15))
     display_list = [y_input[0], x_input[0], y_pred[0]]
-    title = ['Objetivo, $y$', 'Left $x$', 'p2p  $x^\prime$']
+    title = ['Original $y$', 'Imágen con niebla $x$', 'Resultado p2p  $x^\prime$']
     for i in range(3):
         plt.subplot(1, 3, i + 1)
         if i < 3:
