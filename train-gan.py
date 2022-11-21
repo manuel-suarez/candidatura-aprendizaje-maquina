@@ -365,7 +365,7 @@ summary_writer = tf.summary.create_file_writer(
 # Entrenamiento
 
 @tf.function
-def train_step(left_image, right_image, target, test_left_image, test_right_image, test_target, step):
+def train_step(input_image, target, test_input_image, test_target, step):
     '''
     Cálculos realizados durante un paso del entrenamiento
 
@@ -381,11 +381,11 @@ def train_step(left_image, right_image, target, test_left_image, test_right_imag
     # Usamos dos cintas de gradiente para el registro de las operaciones
     with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
         # Generamos campo de disparidades sintético
-        gen_output = generator([left_image, right_image], training=True)
+        gen_output = generator(input_image, training=True)
         # Obtenemos salida del discriminador con el campo real y sintético de
         # disparidades
-        disc_real_output = discriminator([left_image, right_image, target], training=True)
-        disc_generated_output = discriminator([left_image, right_image, gen_output], training=True)
+        disc_real_output = discriminator([input_image, target], training=True)
+        disc_generated_output = discriminator([input_image, gen_output], training=True)
         # Obtenemos evaluación de las funciones de costo para el generador y el
         # discriminador
         gen_total_loss, gen_gan_loss, gen_l1_loss = generator_loss(disc_generated_output, gen_output, target)
@@ -402,11 +402,11 @@ def train_step(left_image, right_image, target, test_left_image, test_right_imag
     # Usamos dos cintas de gradiente para el registro de las operaciones en los datos de prueba (para validación)
     with tf.GradientTape() as test_gen_tape, tf.GradientTape() as test_disc_tape:
         # Generamos campo de disparidades sintético
-        test_gen_output = generator([test_left_image, test_right_image], training=True)
+        test_gen_output = generator(test_input_image, training=True)
         # Obtenemos salida del discriminador con el campo real y sintético de
         # disparidades
-        test_disc_real_output = discriminator([test_left_image, test_right_image, test_target], training=True)
-        test_disc_generated_output = discriminator([test_left_image, test_right_image, test_gen_output], training=True)
+        test_disc_real_output = discriminator([test_input_image, test_target], training=True)
+        test_disc_generated_output = discriminator([test_input_image, test_gen_output], training=True)
         # Obtenemos evaluación de las funciones de costo para el generador y el
         # discriminador
         test_gen_total_loss, test_gen_gan_loss, test_gen_l1_loss = generator_loss(test_disc_generated_output,
@@ -425,7 +425,7 @@ def train_step(left_image, right_image, target, test_left_image, test_right_imag
 
 def fit(train_xy, test_xy, steps):
     # toma un lote, batch de pares (x,y)
-    xl, xr, y = next(iter(test_xy.take(1)))
+    x, y = next(iter(test_xy.take(1)))
     start = time.time()
 
     # Emulamos un objeto history para visualizar las métricas del proceso
@@ -440,8 +440,8 @@ def fit(train_xy, test_xy, steps):
     }
     # Obtenemos un lote de imagenes de entrenamiento por cada paso realizado
     # Obtenemos simultáneamente un lote de imágenes de validación
-    for (step, (xl, xr, y)), (xtl, xtr, yt) in zip(train_xy.repeat().take(steps).enumerate(),
-                                                   test_xy.repeat().take(steps)):
+    for (step, (x, y)), (xt, yt) in zip(train_xy.repeat().take(steps).enumerate(),
+                                        test_xy.repeat().take(steps)):
         # Cada mil pasos previsualizamos el resultado del generador
         if ((step + 1) % 1000 == 0) and (step > 0):
             display.clear_output(wait=True)
@@ -449,11 +449,11 @@ def fit(train_xy, test_xy, steps):
                 print(f'Time taken for 1000 steps: {time.time() - start:.2f} sec\n')
 
             start = time.time()
-            generate_images(generator, xl, xr, y)
+            generate_images(f"training_step{step}.png", generator, x, y)
             print(f"Step: {step // 1000}k")
 
         # Ejecutamos el paso de entrenamiento
-        gen_loss, disc_loss, test_gen_loss, test_disc_loss = train_step(xl, xr, y, xtl, xtr, yt, step)
+        gen_loss, disc_loss, test_gen_loss, test_disc_loss = train_step(x, y, xt, yt, step)
 
         history['train_gen_loss'][step] = gen_loss
         history['train_disc_loss'][step] = disc_loss
