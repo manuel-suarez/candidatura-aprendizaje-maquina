@@ -189,3 +189,66 @@ def upsample(filters, size, apply_dropout=False):
 up_model = upsample(3, 4)
 up_result = up_model(down_result)
 print (up_result.shape)
+
+# Generador
+def Generator():
+    '''
+    UNet
+    '''
+    # En relación con el planteamiento del problema tenemos dos imágenes
+    # (izquiera y derecha) que consisten el input de entrada por lo que debemos
+    # definir dos capas de entrada que posteriormente uniremos por una capa de
+    # concatenación
+    x_input = tf.keras.layers.Input(shape=INPUT_DIM)
+    # Definimos además los bloques down y up que componen la arquitectura de la
+    # UNet
+    down_stack = [
+        downsample(64,  4, apply_batchnorm=False),# (batch_size, 128, 128, 64)
+        downsample(128, 4),                       # (batch_size, 64,  64,  128)
+        downsample(256, 4),                       # (batch_size, 32,  32,  256)
+        downsample(512, 4),                       # (batch_size, 16,  16,  512)
+        downsample(512, 4),                       # (batch_size, 8,   8,   512)
+        downsample(512, 4),                       # (batch_size, 4,   4,   512)
+        downsample(512, 4),                       # (batch_size, 2,   2,   512)
+        downsample(512, 4),                       # (batch_size, 1,   1,   512)
+    ]
+
+    up_stack = [
+        upsample(512, 4, apply_dropout=True),     # (batch_size, 2,    2,  1024)
+        upsample(512, 4, apply_dropout=True),     # (batch_size, 4,    4,  1024)
+        upsample(512, 4, apply_dropout=True),     # (batch_size, 8,    8,  1024)
+        upsample(512, 4),                         # (batch_size, 16,   16, 1024)
+        upsample(256, 4),                         # (batch_size, 32,   32, 512)
+        upsample(128, 4),                         # (batch_size, 64,   64, 256)
+        upsample(64,  4),                         # (batch_size, 128, 128, 128)
+    ]
+
+    # Definimos la capa de salida (estimación del campo de disparidades) en
+    # función del número de canales definidos previamente
+    initializer = tf.random_normal_initializer(0., 0.02)
+    last = tf.keras.layers.Conv2DTranspose(OUTPUT_CHANNELS, 4,
+                                         strides=2,
+                                         padding='same',
+                                         kernel_initializer=initializer,
+                                         activation='tanh')  # (batch_size, 256, 256, 3)
+
+    # Definición de la arquitectura de la red
+    x = x_input
+    # Codificador
+    skips = []
+    for down in down_stack:
+        x = down(x)
+        skips.append(x)  # se agrega a una lista la salida cada vez que se desciende en el generador
+    skips = reversed(skips[:-1])
+    # Decodificador (bloques upsample y skip connections)
+    for up, skip in zip(up_stack, skips):
+        x = up(x)
+        x = tf.keras.layers.Concatenate()([x, skip])
+    # Capa de salida
+    x = last(x)
+    # Construcción del modelo
+    # Se requieren dos inputs y proporciona una única salida
+    return tf.keras.Model(inputs=x_input, outputs=x)
+
+generator = Generator()
+generator.summary()
