@@ -105,3 +105,29 @@ print(x_imgs[0].shape, y_imgs[0].shape)
 
 # Verificamos
 display_images("figura1.png", x_imgs, y_imgs, rows=3)
+
+# Definición de los conjuntos de entrenamiento y prueba
+idx = int(BUFFER_SIZE*.8)
+
+train_x = tf.data.Dataset.list_files(x_files[:idx], shuffle=False)
+train_y = tf.data.Dataset.list_files(y_files[:idx], shuffle=False)
+
+test_x = tf.data.Dataset.list_files(x_files[idx:], shuffle=False)
+test_y = tf.data.Dataset.list_files(y_files[idx:], shuffle=False)
+
+train_xy = tf.data.Dataset.zip((train_x, train_y))
+train_xy = train_xy.shuffle(buffer_size=idx, reshuffle_each_iteration=True)
+train_xy = train_xy.map(load_images, num_parallel_calls=tf.data.AUTOTUNE)
+train_xy = train_xy.batch(BATCH_SIZE)
+
+test_xy = tf.data.Dataset.zip((test_x, test_y))
+test_xy = test_xy.map(load_images, num_parallel_calls=tf.data.AUTOTUNE)
+test_xy = test_xy.batch(BATCH_SIZE)
+
+# Verificación de carga de archivos por medio de la definición de los Dataset
+for x, y in train_xy.take(3):
+    display_images("figura2.png", x, y, rows=3)
+    break
+for x, y in test_xy.take(3):
+    display_images("figura3.png", x, y, rows=3)
+    break
