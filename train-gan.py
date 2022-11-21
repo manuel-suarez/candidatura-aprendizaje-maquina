@@ -341,9 +341,9 @@ def generate_images(figname, model, x_input, y_input):
     y_pred = model([x_input], training=True)
 
     plt.figure(figsize=(15, 15))
-    display_list = [y_input[0][:, :, 0], x_input[0], y_pred[0]]
+    display_list = [y_input[0], x_input[0], y_pred[0]]
     title = ['Objetivo, $y$', 'Left $x$', 'p2p  $x^\prime$']
-    for i in range(4):
+    for i in range(3):
         plt.subplot(1, 3, i + 1)
         if i < 3:
             plt.title(title[i])
