@@ -356,3 +356,115 @@ for x_input, y_input in train_xy.take(1):
     generate_images("figura6.png", generator, x_input, y_input)
     print(x_input.shape, y_input.shape)
     break
+# Bitácora del entrenamiento
+log_dir="logs/"
+
+summary_writer = tf.summary.create_file_writer(
+  log_dir + "fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+
+# Entrenamiento
+
+@tf.function
+def train_step(left_image, right_image, target, test_left_image, test_right_image, test_target, step):
+    '''
+    Cálculos realizados durante un paso del entrenamiento
+
+    Dadas los pares (xl, xr), y (par de imagen izquierda-derecha estereoscópicas, campo de disparidades real):
+    - Generar campo de disparidades sintéticos con UNet
+    - Evaluar el discriminador con los campos de disparidades real y generado
+    - Evaluar los costos del generador y del discriminador
+    - Calcular los gradientes
+    - Realiza los pasos de optimización
+    - Registro de métricas
+    '''
+
+    # Usamos dos cintas de gradiente para el registro de las operaciones
+    with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
+        # Generamos campo de disparidades sintético
+        gen_output = generator([left_image, right_image], training=True)
+        # Obtenemos salida del discriminador con el campo real y sintético de
+        # disparidades
+        disc_real_output = discriminator([left_image, right_image, target], training=True)
+        disc_generated_output = discriminator([left_image, right_image, gen_output], training=True)
+        # Obtenemos evaluación de las funciones de costo para el generador y el
+        # discriminador
+        gen_total_loss, gen_gan_loss, gen_l1_loss = generator_loss(disc_generated_output, gen_output, target)
+        disc_loss = discriminator_loss(disc_real_output, disc_generated_output)
+
+    # Obtenemos gradientes a partir de las cintas
+    generator_gradients = gen_tape.gradient(gen_total_loss, generator.trainable_variables)
+    discriminator_gradients = disc_tape.gradient(disc_loss, discriminator.trainable_variables)
+
+    # Aplicamos a los modelos el paso de optimización
+    generator_optimizer.apply_gradients(zip(generator_gradients, generator.trainable_variables))
+    discriminator_optimizer.apply_gradients(zip(discriminator_gradients, discriminator.trainable_variables))
+
+    # Usamos dos cintas de gradiente para el registro de las operaciones en los datos de prueba (para validación)
+    with tf.GradientTape() as test_gen_tape, tf.GradientTape() as test_disc_tape:
+        # Generamos campo de disparidades sintético
+        test_gen_output = generator([test_left_image, test_right_image], training=True)
+        # Obtenemos salida del discriminador con el campo real y sintético de
+        # disparidades
+        test_disc_real_output = discriminator([test_left_image, test_right_image, test_target], training=True)
+        test_disc_generated_output = discriminator([test_left_image, test_right_image, test_gen_output], training=True)
+        # Obtenemos evaluación de las funciones de costo para el generador y el
+        # discriminador
+        test_gen_total_loss, test_gen_gan_loss, test_gen_l1_loss = generator_loss(test_disc_generated_output,
+                                                                                  test_gen_output, test_target)
+        test_disc_loss = discriminator_loss(test_disc_real_output, test_disc_generated_output)
+
+    # Registramos métricas
+    with summary_writer.as_default():
+        ss = step // 1000
+        tf.summary.scalar('gen_total_loss', gen_total_loss, step=ss)
+        tf.summary.scalar('gen_gan_loss', gen_gan_loss, step=ss)
+        tf.summary.scalar('gen_l1_loss', gen_l1_loss, step=ss)
+        tf.summary.scalar('disc_loss', disc_loss, step=ss)
+
+    return gen_total_loss, disc_loss, test_gen_total_loss, test_disc_loss
+
+def fit(train_xy, test_xy, steps):
+    # toma un lote, batch de pares (x,y)
+    xl, xr, y = next(iter(test_xy.take(1)))
+    start = time.time()
+
+    # Emulamos un objeto history para visualizar las métricas del proceso
+    # de entrenamiento
+    history = {
+        # Train set
+        'train_gen_loss': np.zeros(steps),
+        'train_disc_loss': np.zeros(steps),
+        # Validation set
+        'test_gen_loss': np.zeros(steps),
+        'test_disc_loss': np.zeros(steps)
+    }
+    # Obtenemos un lote de imagenes de entrenamiento por cada paso realizado
+    # Obtenemos simultáneamente un lote de imágenes de validación
+    for (step, (xl, xr, y)), (xtl, xtr, yt) in zip(train_xy.repeat().take(steps).enumerate(),
+                                                   test_xy.repeat().take(steps)):
+        # Cada mil pasos previsualizamos el resultado del generador
+        if ((step + 1) % 1000 == 0) and (step > 0):
+            display.clear_output(wait=True)
+            if step != 0:
+                print(f'Time taken for 1000 steps: {time.time() - start:.2f} sec\n')
+
+            start = time.time()
+            generate_images(generator, xl, xr, y)
+            print(f"Step: {step // 1000}k")
+
+        # Ejecutamos el paso de entrenamiento
+        gen_loss, disc_loss, test_gen_loss, test_disc_loss = train_step(xl, xr, y, xtl, xtr, yt, step)
+
+        history['train_gen_loss'][step] = gen_loss
+        history['train_disc_loss'][step] = disc_loss
+        history['test_gen_loss'][step] = test_gen_loss
+        history['test_disc_loss'][step] = test_disc_loss
+        if (step + 1) % 10 == 0: print('.', end='', flush=True)
+
+        # Cada cinco mil pasos guardamos un checkpoint
+        if ((step + 1) % 5000 == 0) and (step > 0):
+            checkpoint.save(file_prefix=checkpoint_prefix)
+
+    return history
+
+history = fit(train_xy, test_xy, steps=5000)
