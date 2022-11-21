@@ -254,5 +254,6 @@ generator = Generator()
 generator.summary()
 # Verificación de la salida del generador
 gen_output = generator(x_img[tf.newaxis, ...], training=False)
+plt.figure()
 plt.imshow(gen_output[0, ...][:,:,0]*50)
 plt.savefig("figura4.png")
