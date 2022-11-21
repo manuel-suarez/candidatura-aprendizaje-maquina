@@ -33,3 +33,7 @@ yfiles=np.array(yfiles)
 # Verificamos las primeras 5 entradas para identificar si corresponden al mismo escenario
 for xfile, yfile in zip(xfiles[:5], yfiles[:5]):
   print(xfile, yfile)
+
+# Comparamos longitud de conjunto de entrenamiento
+print(len(xfiles), len(yfiles))
+
