@@ -262,11 +262,10 @@ plt.savefig("figura4.png")
 def Discriminator():
     initializer = tf.random_normal_initializer(0., 0.02)
 
-    inp_l = tf.keras.layers.Input(shape=[256, 256, 3], name='input_left_image')
-    inp_r = tf.keras.layers.Input(shape=[256, 256, 3], name='input_right_image')
-    tar = tf.keras.layers.Input(shape=[256, 256, 1], name='target_image')
+    inp = tf.keras.layers.Input(shape=[256, 256, 3], name='input_left_image')
+    tar = tf.keras.layers.Input(shape=[256, 256, 3], name='target_image')
     x = tf.keras.layers.concatenate(
-        [inp_l, inp_r, tar])  # (batch_size, 256, 256, 3 channels left + 3 channels right + disparity channel)
+        [inp, tar])  # (batch_size, 256, 256, 3 channels left + 3 channels right + disparity channel)
 
     down1 = downsample(64, 4, False)(x)  # (batch_size, 128, 128, 64)
     down2 = downsample(128, 4)(down1)  # (batch_size, 64, 64, 128)
@@ -285,7 +284,7 @@ def Discriminator():
                                   strides=1,
                                   kernel_initializer=initializer)(zero_pad2)  # (batch_size, 30, 30, 1)
 
-    return tf.keras.Model(inputs=[inp_l, inp_r, tar], outputs=last)
+    return tf.keras.Model(inputs=[inp, tar], outputs=last)
 # Resumen de la arquitectura del discriminador
 discriminator = Discriminator()
 discriminator.summary()
