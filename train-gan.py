@@ -249,6 +249,10 @@ def Generator():
     # Construcción del modelo
     # Se requieren dos inputs y proporciona una única salida
     return tf.keras.Model(inputs=x_input, outputs=x)
-
+# Estructura del generador
 generator = Generator()
 generator.summary()
+# Verificación de la salida del generador
+gen_output = generator(x_img[tf.newaxis, ...], training=False)
+plt.imshow(gen_output[0, ...][:,:,0]*50)
+plt.savefig("figura4.png")
