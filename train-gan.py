@@ -322,3 +322,37 @@ def generator_loss(disc_generated_output, gen_output, target):
     total_gen_loss = gan_loss + (LAMBDA * l1_loss)
 
     return total_gen_loss, gan_loss, l1_loss
+# Optimizadores
+generator_optimizer     = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
+discriminator_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
+# Directorio de checkpoints
+checkpoint_dir = './training_checkpoints'
+checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
+checkpoint = tf.train.Checkpoint(generator_optimizer=generator_optimizer,
+                                 discriminator_optimizer=discriminator_optimizer,
+                                 generator=generator,
+                                 discriminator=discriminator)
+# Función auxiliar para la visualización de resultados parciales
+def generate_images(figname, model, x_input, y_input):
+    '''
+    Con training=True se obtienen las metricas sobre el Lote.
+    En otro caso, no se evaluan y se regresan las del entrenamiento.
+    '''
+    y_pred = model([x_input], training=True)
+
+    plt.figure(figsize=(15, 15))
+    display_list = [y_input[0][:, :, 0], x_input[0], y_pred[0]]
+    title = ['Objetivo, $y$', 'Left $x$', 'p2p  $x^\prime$']
+    for i in range(4):
+        plt.subplot(1, 3, i + 1)
+        if i < 3:
+            plt.title(title[i])
+        # Getting the pixel values in the [0, 1] range to plot.
+        plt.imshow((display_list[i] + 1) / 2)
+        plt.axis('off')
+    plt.savefig(figname)
+# Verificación de función auxiliar
+for x_input, y_input in train_xy.take(1):
+    generate_images("figura6.png", generator, x_input, y_input)
+    print(x_input.shape, y_input.shape)
+    break
