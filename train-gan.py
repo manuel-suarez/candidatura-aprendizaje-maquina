@@ -31,5 +31,5 @@ xfiles=np.array(xfiles)
 yfiles=np.array(yfiles)
 
 # Verificamos las primeras 5 entradas para identificar si corresponden al mismo escenario
-for xl, xr, y in zip(xl_files[:5], xr_files[:5], y_files[:5]):
-  print(xl, xr, y)
+for xfile, yfile in zip(xfiles[:5], yfiles[:5]):
+  print(xfile, yfile)
