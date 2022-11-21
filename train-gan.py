@@ -289,3 +289,12 @@ def Discriminator():
 # Resumen de la arquitectura del discriminador
 discriminator = Discriminator()
 discriminator.summary()
+# Verificación del resultado del discriminador
+disc_out = discriminator([x_img[tf.newaxis, ...], gen_output], training=False)
+
+fig, ax = plt.subplots(1, 2, figsize=(8, 4))
+
+ax[0].imshow((x_img+1)/2)
+ax[1].imshow(disc_out[0, ..., -1]*200, vmin=-20, vmax=20, cmap='RdBu_r')  #*100
+plt.tight_layout()
+plt.savefig("figura5.png")
