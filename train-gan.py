@@ -468,3 +468,15 @@ def fit(train_xy, test_xy, steps):
     return history
 
 history = fit(train_xy, test_xy, steps=5000)
+
+# Visualización de gráficas del entrenamiento
+fig, ax = plt.subplots(2, 2, figsize=(10,6))
+ax[0,0].plot(history['train_gen_loss'][:100])
+ax[0,0].set_title('Generator train loss')
+ax[0,1].plot(history['train_disc_loss'][:100])
+ax[0,1].set_title('Discriminator train loss')
+ax[1,0].plot(history['test_gen_loss'][:100])
+ax[1,0].set_title('Generator val loss')
+ax[1,1].plot(history['test_disc_loss'][:100])
+ax[1,1].set_title('Discriminator val loss')
+plt.savefig("figura9.png")
