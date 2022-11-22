@@ -23,7 +23,7 @@ INITIAL_EPOCH = 0
 
 # Definición y configuración de las rutas
 local_dir = '/home/est_posgrado_manuel.suarez/data/ReDWeb-S/trainset'
-x_files  = glob(os.path.join(local_dir, 'haze', 'beta05', '*.jpg'))
+x_files  = glob(os.path.join(local_dir, 'haze', 'beta15', '*.jpg'))
 y_files  = glob(os.path.join(local_dir, 'RGB', '*.jpg'))
 x_files.sort()
 y_files.sort()
