@@ -210,13 +210,10 @@ def create_mask(pred_mask):
 def show_predictions(figname, dataset=None, num=1):
   if dataset:
     for image, mask in dataset.take(num):
-      pred_mask = model.predict(image)
-      prediction = create_mask(pred_mask)
-      print(image[0].shape, mask[0].shape, pred_mask.shape, prediction.shape)
-      display(figname, [image[0], mask[0], prediction])
+      prediction = model.predict(image)
+      display(figname, [image[0], mask[0], prediction[0]])
   else:
     prediction = model.predict(sample_image[tf.newaxis, ...])
-    print(sample_image.shape, sample_mask.shape, prediction.shape)
     display(figname, [sample_image, sample_mask, prediction[0]])
 
 
