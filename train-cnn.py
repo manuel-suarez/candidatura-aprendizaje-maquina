@@ -34,7 +34,7 @@ def test_load_file_and_visualize():
   fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(8, 8))
   ax[0].imshow(image)
   ax[0].set_title('Imagen')
-  ax[1].imshow(mask[:,:,0])
+  ax[1].imshow(mask)
   ax[1].set_title('Máscara')
   fig.tight_layout()
   plt.savefig("figura1.png")
@@ -73,8 +73,8 @@ def load_image(file_path):
   input_image = tf.image.resize(file_array, (128, 128))
   input_mask = tf.image.resize(mask_array, (128, 128))
   # Separamos canales
-  input_image = input_image[:, :, :3]
-  input_mask = input_mask[:, :, :1]
+  #input_image = input_image[:, :, :3]
+  #input_mask = input_mask[:, :, :1]
 
   # Normalizamos datos
   input_image, input_mask = normalize(input_image, input_mask)
@@ -189,27 +189,20 @@ def unet_model(output_channels:int):
   return tf.keras.Model(inputs=inputs, outputs=x)
 
 # Construcción y compilación del modelo
-OUTPUT_CLASSES = 2
-
-model = unet_model(output_channels=OUTPUT_CLASSES)
+model = unet_model(output_channels=3)
 model.compile(optimizer='adam',
               loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               metrics=['accuracy'])
 
 # Funciones auxiliares para visualización del modelo
-def create_mask(pred_mask):
-  pred_mask = tf.argmax(pred_mask, axis=-1)
-  pred_mask = pred_mask[..., tf.newaxis]
-  return pred_mask[0]
-
 def show_predictions(figname, dataset=None, num=1):
   if dataset:
     for image, mask in dataset.take(num):
       pred_mask = model.predict(image)
-      display(figname, [image[0], mask[0], create_mask(pred_mask)])
+      display(figname, [image[0], mask[0], pred_mask])
   else:
     display(figname, [sample_image, sample_mask,
-             create_mask(model.predict(sample_image[tf.newaxis, ...]))])
+             model.predict(sample_image[tf.newaxis, ...])])
 
 
 # Proceso de entrenamiento en tres pasos: 1.-Capas de salida - 2.-Capa convolucional - 3.-Todas las capas
