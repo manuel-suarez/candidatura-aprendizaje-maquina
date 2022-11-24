@@ -7,13 +7,11 @@ from tensorflow_examples.models.pix2pix import pix2pix
 from IPython.display import clear_output
 from matplotlib import pyplot as plt
 
-# TODO actualizar la ruta en referencia a los datos en el clúster
-gdrive_dir = 'gdrive/MyDrive/DeepLearning'
-local_dir = 'lgg-mri-segmentation-jpeg/kaggle_3m'
+# Ruta de los datos en el clúster
+local_dir = '/home/est_posgrado_manuel.suarez/data/ReDWeb-S/trainset'
 
 # Configuración de directorio
-# TODO actualizar la expresión regular
-ds_list = tf.data.Dataset.list_files(os.path.join(local_dir,'*/*[^mask].jpg'), shuffle=False)
+ds_list = tf.data.Dataset.list_files(os.path.join(local_dir,'RGB','*/*.jpg'), shuffle=False)
 val_size = int(len(ds_list) * 0.2)
 ds_train = ds_list.skip(val_size)
 ds_test  = ds_list.take(val_size)
@@ -27,9 +25,8 @@ def load_file(filepath):
 
 # Función para validar funcionalidad de la función cargando y desplegando un archivo y máscara correspondiente
 def test_load_file_and_visualize():
-  # TODO actualizar referencia a nombres de archivos de visualización
-  image = load_file(os.path.join(local_dir,'TCGA_CS_4941_19960909','TCGA_CS_4941_19960909_11.jpg'))
-  mask = load_file(os.path.join(local_dir,'TCGA_CS_4941_19960909','TCGA_CS_4941_19960909_11_mask.jpg'))
+  image = load_file(os.path.join(local_dir,'RGB','4757359274_6fab3f7680_b.jpg'))
+  mask = load_file(os.path.join(local_dir,'haze','beta25','4757359274_6fab3f7680_b.jpg'))
   print(type(image))
   print(type(mask))
 
@@ -40,7 +37,7 @@ def test_load_file_and_visualize():
   ax[1].imshow(mask[:,:,0])
   ax[1].set_title('Máscara')
   fig.tight_layout()
-  plt.show()
+  plt.savefig("figura1.png")
 
 test_load_file_and_visualize()
 
@@ -110,7 +107,7 @@ train_batches = (
 test_batches = img_test.batch(BATCH_SIZE)
 
 # Función auxiliar de despliegue de imagen
-def display(display_list):
+def display(figname, display_list):
   plt.figure(figsize=(15, 15))
 
   title = ['Input Image', 'True Mask', 'Predicted Mask']
@@ -120,12 +117,12 @@ def display(display_list):
     plt.title(title[i])
     plt.imshow(tf.keras.utils.array_to_img(display_list[i]))
     plt.axis('off')
-  plt.show()
+  plt.savefig(figname)
 
 # Visualización de imágenes
 for images, masks in train_batches.take(2):
   sample_image, sample_mask = images[0], masks[0]
-  display([sample_image, sample_mask])
+  display("figura2.png", [sample_image, sample_mask])
 
 # Construcción del modelo
 # Usamos como modelo base MobileNetV2 especificando la forma de los datos de entrada y sin incluir la capa de clasificación
@@ -195,20 +192,15 @@ def create_mask(pred_mask):
   pred_mask = pred_mask[..., tf.newaxis]
   return pred_mask[0]
 
-def show_predictions(dataset=None, num=1):
+def show_predictions(figname, dataset=None, num=1):
   if dataset:
     for image, mask in dataset.take(num):
       pred_mask = model.predict(image)
       display([image[0], mask[0], create_mask(pred_mask)])
   else:
-    display([sample_image, sample_mask,
+    display(figname, [sample_image, sample_mask,
              create_mask(model.predict(sample_image[tf.newaxis, ...]))])
 
-class DisplayCallback(tf.keras.callbacks.Callback):
-  def on_epoch_end(self, epoch, logs=None):
-    clear_output(wait=True)
-    show_predictions()
-    print ('\nSample Prediction after epoch {}\n'.format(epoch+1))
 
 # Proceso de entrenamiento en tres pasos: 1.-Capas de salida - 2.-Capa convolucional - 3.-Todas las capas
 EPOCHS = 30
@@ -216,6 +208,11 @@ VAL_SUBSPLITS = 5
 VALIDATION_STEPS = len(ds_test)//BATCH_SIZE//VAL_SUBSPLITS
 
 # Primera etapa
+class DisplayCallback(tf.keras.callbacks.Callback):
+  def on_epoch_end(self, epoch, logs=None):
+    clear_output(wait=True)
+    show_predictions(f"training1_{epoch}_result.png")
+    print ('\nSample Prediction after epoch {}\n'.format(epoch+1))
 model_history = model.fit(train_batches, epochs=EPOCHS,
                           steps_per_epoch=STEPS_PER_EPOCH,
                           validation_steps=VALIDATION_STEPS,
@@ -233,14 +230,19 @@ plt.xlabel('Epoch')
 plt.ylabel('Loss Value')
 plt.ylim([0, 1])
 plt.legend()
-plt.show()
+plt.savefig("training1_results.png")
 
-show_predictions(test_batches, 3)
+show_predictions("predictions1_result.png", test_batches, 3)
 
 # Segunda etapa
 EPOCHS = 30
 
 model.layers[-1].trainable = True
+class DisplayCallback(tf.keras.callbacks.Callback):
+  def on_epoch_end(self, epoch, logs=None):
+    clear_output(wait=True)
+    show_predictions(f"training2_{epoch}_result.png")
+    print ('\nSample Prediction after epoch {}\n'.format(epoch+1))
 model_history = model.fit(train_batches, epochs=EPOCHS,
                           steps_per_epoch=STEPS_PER_EPOCH,
                           validation_steps=VALIDATION_STEPS,
@@ -258,9 +260,9 @@ plt.xlabel('Epoch')
 plt.ylabel('Loss Value')
 plt.ylim([0, 1])
 plt.legend()
-plt.show()
+plt.savefig("training2_results.png")
 
-show_predictions(test_batches, 3)
+show_predictions("predictions2_result.png", test_batches, 3)
 
 # Tercera etapa
 EPOCHS = 30
@@ -268,6 +270,11 @@ EPOCHS = 30
 down_stack.trainable = True
 for layer in model.layers:
   layer.trainable = True
+class DisplayCallback(tf.keras.callbacks.Callback):
+  def on_epoch_end(self, epoch, logs=None):
+    clear_output(wait=True)
+    show_predictions(f"training3_{epoch}_result.png")
+    print ('\nSample Prediction after epoch {}\n'.format(epoch+1))
 model_history = model.fit(train_batches, epochs=EPOCHS,
                           steps_per_epoch=STEPS_PER_EPOCH,
                           validation_steps=VALIDATION_STEPS,
@@ -285,6 +292,6 @@ plt.xlabel('Epoch')
 plt.ylabel('Loss Value')
 plt.ylim([0, 1])
 plt.legend()
-plt.show()
+plt.savefig("training3_results.png")
 
-show_predictions(test_batches, 3)
+show_predictions("predictions3_result.png", test_batches, 3)
