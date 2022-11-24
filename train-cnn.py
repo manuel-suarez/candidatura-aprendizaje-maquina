@@ -34,7 +34,7 @@ def test_load_file_and_visualize():
   fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(8, 8))
   ax[0].imshow(image)
   ax[0].set_title('Imagen')
-  ax[1].imshow(mask)
+  ax[1].imshow(mask[:,:,0])
   ax[1].set_title('Máscara')
   fig.tight_layout()
   plt.savefig("figura1.png")
@@ -73,8 +73,8 @@ def load_image(file_path):
   input_image = tf.image.resize(file_array, (128, 128))
   input_mask = tf.image.resize(mask_array, (128, 128))
   # Separamos canales
-  #input_image = input_image[:, :, :3]
-  #input_mask = input_mask[:, :, :1]
+  input_image = input_image[:, :, :3]
+  input_mask = input_mask[:, :, :1]
 
   # Normalizamos datos
   input_image, input_mask = normalize(input_image, input_mask)
