@@ -188,3 +188,24 @@ model = unet_model(output_channels=OUTPUT_CLASSES)
 model.compile(optimizer='adam',
               loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               metrics=['accuracy'])
+
+# Funciones auxiliares para visualización del modelo
+def create_mask(pred_mask):
+  pred_mask = tf.argmax(pred_mask, axis=-1)
+  pred_mask = pred_mask[..., tf.newaxis]
+  return pred_mask[0]
+
+def show_predictions(dataset=None, num=1):
+  if dataset:
+    for image, mask in dataset.take(num):
+      pred_mask = model.predict(image)
+      display([image[0], mask[0], create_mask(pred_mask)])
+  else:
+    display([sample_image, sample_mask,
+             create_mask(model.predict(sample_image[tf.newaxis, ...]))])
+
+class DisplayCallback(tf.keras.callbacks.Callback):
+  def on_epoch_end(self, epoch, logs=None):
+    clear_output(wait=True)
+    show_predictions()
+    print ('\nSample Prediction after epoch {}\n'.format(epoch+1))
