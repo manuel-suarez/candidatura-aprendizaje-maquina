@@ -191,7 +191,8 @@ def unet_model(output_channels:int):
 # Construcción y compilación del modelo
 model = unet_model(output_channels=3)
 model.compile(optimizer='adam',
-              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+              #loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+              loss=tf.keras.losses.MeanSquaredError(reduction="auto"),
               metrics=['accuracy'])
 
 # Funciones auxiliares para visualización del modelo
