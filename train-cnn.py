@@ -209,3 +209,82 @@ class DisplayCallback(tf.keras.callbacks.Callback):
     clear_output(wait=True)
     show_predictions()
     print ('\nSample Prediction after epoch {}\n'.format(epoch+1))
+
+# Proceso de entrenamiento en tres pasos: 1.-Capas de salida - 2.-Capa convolucional - 3.-Todas las capas
+EPOCHS = 30
+VAL_SUBSPLITS = 5
+VALIDATION_STEPS = len(ds_test)//BATCH_SIZE//VAL_SUBSPLITS
+
+# Primera etapa
+model_history = model.fit(train_batches, epochs=EPOCHS,
+                          steps_per_epoch=STEPS_PER_EPOCH,
+                          validation_steps=VALIDATION_STEPS,
+                          validation_data=test_batches,
+                          callbacks=[DisplayCallback()])
+
+loss = model_history.history['loss']
+val_loss = model_history.history['val_loss']
+
+plt.figure()
+plt.plot(model_history.epoch, loss, 'r', label='Training loss')
+plt.plot(model_history.epoch, val_loss, 'bo', label='Validation loss')
+plt.title('Training and Validation Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss Value')
+plt.ylim([0, 1])
+plt.legend()
+plt.show()
+
+show_predictions(test_batches, 3)
+
+# Segunda etapa
+EPOCHS = 30
+
+model.layers[-1].trainable = True
+model_history = model.fit(train_batches, epochs=EPOCHS,
+                          steps_per_epoch=STEPS_PER_EPOCH,
+                          validation_steps=VALIDATION_STEPS,
+                          validation_data=test_batches,
+                          callbacks=[DisplayCallback()])
+
+loss = model_history.history['loss']
+val_loss = model_history.history['val_loss']
+
+plt.figure()
+plt.plot(model_history.epoch, loss, 'r', label='Training loss')
+plt.plot(model_history.epoch, val_loss, 'bo', label='Validation loss')
+plt.title('Training and Validation Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss Value')
+plt.ylim([0, 1])
+plt.legend()
+plt.show()
+
+show_predictions(test_batches, 3)
+
+# Tercera etapa
+EPOCHS = 30
+
+down_stack.trainable = True
+for layer in model.layers:
+  layer.trainable = True
+model_history = model.fit(train_batches, epochs=EPOCHS,
+                          steps_per_epoch=STEPS_PER_EPOCH,
+                          validation_steps=VALIDATION_STEPS,
+                          validation_data=test_batches,
+                          callbacks=[DisplayCallback()])
+
+loss = model_history.history['loss']
+val_loss = model_history.history['val_loss']
+
+plt.figure()
+plt.plot(model_history.epoch, loss, 'r', label='Training loss')
+plt.plot(model_history.epoch, val_loss, 'bo', label='Validation loss')
+plt.title('Training and Validation Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss Value')
+plt.ylim([0, 1])
+plt.legend()
+plt.show()
+
+show_predictions(test_batches, 3)
