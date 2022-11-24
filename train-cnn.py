@@ -298,8 +298,9 @@ ax[1].imshow(disc_out[0, ..., -1]*200, vmin=-20, vmax=20, cmap='RdBu_r')  #*100
 plt.tight_layout()
 plt.savefig("figura5.png")
 
-# Funciones de costo
-loss_object = tf.keras.losses.BinaryCrossentropy(from_logits=True)
+# Funciones de costo (Cambiar función de costo a MAE y MSE)
+#loss_object = tf.keras.losses.BinaryCrossentropy(from_logits=True)
+loss_object = tf.keras.losses.MeanSquaredError(reduction="auto")
 # Discriminador
 def discriminator_loss(disc_real_output, disc_generated_output):
     real_loss        = loss_object(tf.ones_like(disc_real_output), disc_real_output)
@@ -487,5 +488,7 @@ chkpnt = tf.train.latest_checkpoint(checkpoint_dir)
 chkpnt = './training_checkpoints/ckpt-1'
 checkpoint.restore(chkpnt)
 
-for xl, xr, y in test_xy.take(8):
-    generate_images(generator, xl, xr, y)
+step = 1
+for x, y in test_xy.take(8):
+    generate_images(f"testing_step{step}.png", generator, x, y)
+    step += 1

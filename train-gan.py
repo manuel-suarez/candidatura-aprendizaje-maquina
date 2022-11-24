@@ -298,8 +298,9 @@ ax[1].imshow(disc_out[0, ..., -1]*200, vmin=-20, vmax=20, cmap='RdBu_r')  #*100
 plt.tight_layout()
 plt.savefig("figura5.png")
 
-# Funciones de costo
-loss_object = tf.keras.losses.BinaryCrossentropy(from_logits=True)
+# Funciones de costo (usar MSE y MAE)
+#loss_object = tf.keras.losses.BinaryCrossentropy(from_logits=True)
+loss_object = tf.keras.losses.MeanSquaredError(reduction="auto")
 # Discriminador
 def discriminator_loss(disc_real_output, disc_generated_output):
     real_loss        = loss_object(tf.ones_like(disc_real_output), disc_real_output)
