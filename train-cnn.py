@@ -221,7 +221,8 @@ model_history = model.fit(train_batches, epochs=EPOCHS,
                           steps_per_epoch=STEPS_PER_EPOCH,
                           validation_steps=VALIDATION_STEPS,
                           validation_data=test_batches,
-                          callbacks=[DisplayCallback()])
+                          #callbacks=[DisplayCallback()]
+                          )
 
 loss = model_history.history['loss']
 val_loss = model_history.history['val_loss']
