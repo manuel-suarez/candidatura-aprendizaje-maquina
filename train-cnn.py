@@ -71,8 +71,8 @@ def load_image(file_path):
   mask_array = load_file(mask_path)
 
   # Redimensionamos archivos para ajustarlo al tamaño de entrada de la red
-  input_image = tf.image.resize(file_array, (128, 128))
-  input_mask = tf.image.resize(mask_array, (128, 128))
+  input_image = tf.image.resize(file_array, (256, 256))
+  input_mask = tf.image.resize(mask_array, (256, 256))
   # Devolvemos las imágenes RGB (notar que ésto provoca el error con la función de costo SparseCategoricalCrossentropy
   # ya que no se estarán comparando etiquetas por bit sino la imagen RGB completa por lo que se debe modificar dicha
   # función para usar MAE o MSE
@@ -140,7 +140,7 @@ for images, masks in train_batches.take(2):
 
 # Construcción del modelo
 # Usamos como modelo base MobileNetV2 especificando la forma de los datos de entrada y sin incluir la capa de clasificación
-base_model = tf.keras.applications.MobileNetV2(input_shape=[128, 128, 3], include_top=False)
+base_model = tf.keras.applications.MobileNetV2(input_shape=[256, 256, 3], include_top=False)
 
 # Usamos las capas de activación
 layer_names = [
@@ -168,7 +168,7 @@ up_stack = [
 
 def unet_model(output_channels:int):
   # Capa de entrada
-  inputs = tf.keras.layers.Input(shape=[128, 128, 3])
+  inputs = tf.keras.layers.Input(shape=[256, 256, 3])
 
   # Capas de downsampling y upsampling
 
