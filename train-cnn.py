@@ -38,6 +38,7 @@ def test_load_file_and_visualize():
   ax[1].set_title('Máscara')
   fig.tight_layout()
   plt.savefig("figura1.png")
+  plt.close()
 
 test_load_file_and_visualize()
 
@@ -130,6 +131,7 @@ def display(figname, display_list):
     plt.imshow(tf.keras.utils.array_to_img(display_list[i]))
     plt.axis('off')
   plt.savefig(figname)
+  plt.close()
 
 # Visualización de imágenes
 for images, masks in train_batches.take(2):
@@ -247,6 +249,7 @@ plt.ylabel('Loss Value')
 plt.ylim([0, 1])
 plt.legend()
 plt.savefig("training1_results.png")
+plt.close()
 
 show_predictions("predictions1_result.png", test_batches, 3)
 
@@ -277,6 +280,7 @@ plt.ylabel('Loss Value')
 plt.ylim([0, 1])
 plt.legend()
 plt.savefig("training2_results.png")
+plt.close()
 
 show_predictions("predictions2_result.png", test_batches, 3)
 
@@ -309,5 +313,6 @@ plt.ylabel('Loss Value')
 plt.ylim([0, 1])
 plt.legend()
 plt.savefig("training3_results.png")
+plt.close()
 
 show_predictions("predictions3_result.png", test_batches, 3)
