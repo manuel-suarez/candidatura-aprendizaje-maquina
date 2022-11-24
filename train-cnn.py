@@ -34,7 +34,7 @@ def test_load_file_and_visualize():
   fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(8, 8))
   ax[0].imshow(image)
   ax[0].set_title('Imagen')
-  ax[1].imshow(mask[:,:,0])
+  ax[1].imshow(mask)
   ax[1].set_title('Máscara')
   fig.tight_layout()
   plt.savefig("figura1.png")
