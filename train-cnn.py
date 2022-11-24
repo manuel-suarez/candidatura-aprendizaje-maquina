@@ -251,8 +251,6 @@ plt.close()
 show_predictions("predictions1_result.png", test_batches, 3)
 
 # Segunda etapa
-EPOCHS = 30
-
 model.layers[-1].trainable = True
 class DisplayCallback(tf.keras.callbacks.Callback):
   def on_epoch_end(self, epoch, logs=None):
@@ -282,8 +280,6 @@ plt.close()
 show_predictions("predictions2_result.png", test_batches, 3)
 
 # Tercera etapa
-EPOCHS = 30
-
 down_stack.trainable = True
 for layer in model.layers:
   layer.trainable = True
