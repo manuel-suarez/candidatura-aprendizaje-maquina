@@ -84,3 +84,27 @@ STEPS_PER_EPOCH = TRAIN_LENGTH // BATCH_SIZE
 img_train = ds_train.map(load_image, num_parallel_calls=tf.data.AUTOTUNE)
 img_test = ds_test.map(load_image, num_parallel_calls=tf.data.AUTOTUNE)
 
+# Aumentación
+class Augment(tf.keras.layers.Layer):
+  def __init__(self, seed=42):
+    super().__init__()
+    # both use the same seed, so they'll make the same random changes.
+    self.augment_inputs = tf.keras.layers.RandomFlip(mode="horizontal", seed=seed)
+    self.augment_labels = tf.keras.layers.RandomFlip(mode="horizontal", seed=seed)
+
+  def call(self, inputs, labels):
+    inputs = self.augment_inputs(inputs)
+    labels = self.augment_labels(labels)
+    return inputs, labels
+
+# Definición de lotes del conjuno de entrenamiento y prueba
+train_batches = (
+    img_train
+    .cache()
+    .shuffle(BUFFER_SIZE)
+    .batch(BATCH_SIZE)
+    .repeat()
+    .map(Augment())
+    .prefetch(buffer_size=tf.data.AUTOTUNE))
+
+test_batches = img_test.batch(BATCH_SIZE)
