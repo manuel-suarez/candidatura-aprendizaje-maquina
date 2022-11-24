@@ -126,3 +126,57 @@ def display(display_list):
 for images, masks in train_batches.take(2):
   sample_image, sample_mask = images[0], masks[0]
   display([sample_image, sample_mask])
+
+# Construcción del modelo
+# Usamos como modelo base MobileNetV2 especificando la forma de los datos de entrada y sin incluir la capa de clasificación
+base_model = tf.keras.applications.MobileNetV2(input_shape=[128, 128, 3], include_top=False)
+
+# Usamos las capas de activación
+layer_names = [
+    'block_1_expand_relu',   # 64x64
+    'block_3_expand_relu',   # 32x32
+    'block_6_expand_relu',   # 16x16
+    'block_13_expand_relu',  # 8x8
+    'block_16_project',      # 4x4
+]
+# Definimos salidas del modelo
+base_model_outputs = [base_model.get_layer(name).output for name in layer_names]
+
+# Creamos modelo base para extracción de características
+down_stack = tf.keras.Model(inputs=base_model.input, outputs=base_model_outputs)
+
+# En el primer ciclo de entrenamiento congelamos los pesos del modelo base
+down_stack.trainable = False
+
+up_stack = [
+    pix2pix.upsample(512, 3),  # 4x4 -> 8x8
+    pix2pix.upsample(256, 3),  # 8x8 -> 16x16
+    pix2pix.upsample(128, 3),  # 16x16 -> 32x32
+    pix2pix.upsample(64, 3),   # 32x32 -> 64x64
+]
+
+def unet_model(output_channels:int):
+  # Capa de entrada
+  inputs = tf.keras.layers.Input(shape=[128, 128, 3])
+
+  # Capas de downsampling y upsampling
+
+  # Downsampling through the model
+  skips = down_stack(inputs)
+  x = skips[-1]
+  skips = reversed(skips[:-1])
+
+  # Upsampling and establishing the skip connections
+  for up, skip in zip(up_stack, skips):
+    x = up(x)
+    concat = tf.keras.layers.Concatenate()
+    x = concat([x, skip])
+
+  # Capa convolucional de salida (para 2a fase de entrenamiento)
+  last = tf.keras.layers.Conv2DTranspose(
+      filters=output_channels, kernel_size=3, strides=2,
+      padding='same')  #64x64 -> 128x128
+
+  x = last(x)
+
+  return tf.keras.Model(inputs=inputs, outputs=x)
