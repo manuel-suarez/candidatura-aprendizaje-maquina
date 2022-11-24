@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 local_dir = '/home/est_posgrado_manuel.suarez/data/ReDWeb-S/trainset'
 
 # Configuración de directorio
-ds_list = tf.data.Dataset.list_files(os.path.join(local_dir,'haze','beta25','*.jpg'), shuffle=False)
+ds_list = tf.data.Dataset.list_files(os.path.join(local_dir,'haze','beta15','*.jpg'), shuffle=False)
 val_size = int(len(ds_list) * 0.2)
 ds_train = ds_list.skip(val_size)
 ds_test  = ds_list.take(val_size)
@@ -199,7 +199,8 @@ model.compile(optimizer='adam',
               #loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               # Modificamos la función de costo por MAE o MSE ya que las entradas y salidas tienen el mismo número
               # de canales ya que no estamos haciendo segmentación
-              loss=tf.keras.losses.MeanSquaredError(reduction="auto"),
+              #loss=tf.keras.losses.MeanSquaredError(reduction="auto"),
+              loss=tf.keras.losses.MeanAbsoluteError(reduction="auto"),
               metrics=['accuracy'])
 
 # Funciones auxiliares para visualización del modelo
