@@ -203,7 +203,7 @@ def show_predictions(figname, dataset=None, num=1):
       display(figname, [image[0], mask[0], pred_mask])
   else:
     display(figname, [sample_image, sample_mask,
-             model.predict(sample_image[tf.newaxis, ...])])
+             model.predict(sample_image)])
 
 
 # Proceso de entrenamiento en tres pasos: 1.-Capas de salida - 2.-Capa convolucional - 3.-Todas las capas
