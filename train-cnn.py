@@ -199,7 +199,7 @@ model.compile(optimizer='adam',
               #loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               # Modificamos la función de costo por MAE o MSE ya que las entradas y salidas tienen el mismo número
               # de canales ya que no estamos haciendo segmentación
-              loss=tf.keras.losses.MeanAbsoluteError(reduction="auto"),
+              loss=tf.keras.losses.MeanSquaredError(reduction="auto"),
               metrics=['accuracy'])
 
 # Funciones auxiliares para visualización del modelo
