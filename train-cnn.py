@@ -72,9 +72,11 @@ def load_image(file_path):
   # Redimensionamos archivos para ajustarlo al tamaño de entrada de la red
   input_image = tf.image.resize(file_array, (128, 128))
   input_mask = tf.image.resize(mask_array, (128, 128))
-  # Separamos canales
-  input_image = input_image[:, :, :3]
-  input_mask = input_mask[:, :, :1]
+  # Devolvemos las imágenes RGB (notar que ésto provoca el error con la función de costo SparseCategoricalCrossentropy
+  # ya que no se estarán comparando etiquetas por bit sino la imagen RGB completa por lo que se debe modificar dicha
+  # función para usar MAE o MSE
+  # input_image = input_image[:, :, :3]
+  # input_mask = input_mask[:, :, :1]
 
   # Normalizamos datos
   input_image, input_mask = normalize(input_image, input_mask)
