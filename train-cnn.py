@@ -219,7 +219,7 @@ def show_predictions(figname, dataset=None, num=1):
 
 
 # Proceso de entrenamiento en tres pasos: 1.-Capas de salida - 2.-Capa convolucional - 3.-Todas las capas
-EPOCHS = 100
+EPOCHS = 30
 VAL_SUBSPLITS = 5
 VALIDATION_STEPS = len(ds_test)//BATCH_SIZE//VAL_SUBSPLITS
 
