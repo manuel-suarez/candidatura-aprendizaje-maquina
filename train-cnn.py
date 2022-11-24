@@ -103,8 +103,9 @@ class Augment(tf.keras.layers.Layer):
     self.augment_labels = tf.keras.layers.RandomFlip(mode="horizontal", seed=seed)
 
   def call(self, inputs, labels):
-    inputs = self.augment_inputs(inputs)
-    labels = self.augment_labels(labels)
+    if tf.random.uniform(()) > 0.5:
+      inputs = tf.image.flip_left_right(inputs)
+      labels = tf.image.flip_left_right(labels)
     return inputs, labels
 
 # Definición de lotes del conjuno de entrenamiento y prueba
