@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 local_dir = '/home/est_posgrado_manuel.suarez/data/ReDWeb-S/trainset'
 
 # Configuración de directorio
-ds_list = tf.data.Dataset.list_files(os.path.join(local_dir,'RGB','*/*.jpg'), shuffle=False)
+ds_list = tf.data.Dataset.list_files(os.path.join(local_dir,'haze','beta25','*/*.jpg'), shuffle=False)
 val_size = int(len(ds_list) * 0.2)
 ds_train = ds_list.skip(val_size)
 ds_test  = ds_list.take(val_size)
@@ -25,8 +25,8 @@ def load_file(filepath):
 
 # Función para validar funcionalidad de la función cargando y desplegando un archivo y máscara correspondiente
 def test_load_file_and_visualize():
-  image = load_file(os.path.join(local_dir,'RGB','4757359274_6fab3f7680_b.jpg'))
-  mask = load_file(os.path.join(local_dir,'haze','beta25','4757359274_6fab3f7680_b.jpg'))
+  image = load_file(os.path.join(local_dir,'haze','beta25','4757359274_6fab3f7680_b.jpg'))
+  mask = load_file(os.path.join(local_dir,'RGB','4757359274_6fab3f7680_b.jpg'))
   print(type(image))
   print(type(mask))
 
@@ -50,10 +50,20 @@ def normalize(input_image, input_mask):
 
 # Función de carga de imágen y máscara
 def load_image(file_path):
-  # Descomponemos el nombre del archivo para obtener su nombre separado de su extensión
-  file_components = tf.strings.split(file_path, '.')
+  # Descomponemos el nombre del archivo para obtener su separación en directorios
+  # Datos con niebla: local_dir = '/home/est_posgrado_manuel.suarez/data/ReDWeb-S/trainset/haze/beta25'
+  # Datos clean:      local_dir = '/home/est_posgrado_manuel.suarez/data/ReDWeb-S/trainset/RGB'
+  # Posiciones:                   0   1               2               3      4        5
+  file_components = tf.strings.split(file_path, '/')
   # Interpolamos el posfijo _mask al nombre del archivo para cargar la máscara
-  mask_path = file_components[0] + '_mask.' + file_components[1]
+  mask_path = file_components[0] + '/' + \
+              file_components[1] + '/' + \
+              file_components[2] + '/' + \
+              file_components[3] + '/' + \
+              file_components[4] + '/' + \
+              file_components[5] + '/' + \
+              'RGB'              + '/' + \
+              file_components[8]
 
   # Cargamos archivo y su máscara
   file_array = load_file(file_path)
