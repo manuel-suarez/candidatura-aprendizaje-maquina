@@ -189,21 +189,27 @@ def unet_model(output_channels:int):
   return tf.keras.Model(inputs=inputs, outputs=x)
 
 # Construcción y compilación del modelo
-model = unet_model(output_channels=3)
+OUTPUT_CLASSES = 2
+
+model = unet_model(output_channels=OUTPUT_CLASSES)
 model.compile(optimizer='adam',
-              #loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-              loss=tf.keras.losses.MeanSquaredError(reduction="auto"),
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               metrics=['accuracy'])
 
 # Funciones auxiliares para visualización del modelo
+def create_mask(pred_mask):
+  pred_mask = tf.argmax(pred_mask, axis=-1)
+  pred_mask = pred_mask[..., tf.newaxis]
+  return pred_mask[0]
+
 def show_predictions(figname, dataset=None, num=1):
   if dataset:
     for image, mask in dataset.take(num):
       pred_mask = model.predict(image)
-      display(figname, [image[0], mask[0], pred_mask])
+      display(figname, [image[0], mask[0], create_mask(pred_mask)])
   else:
     display(figname, [sample_image, sample_mask,
-             model.predict(sample_image)])
+             create_mask(model.predict(sample_image[tf.newaxis, ...]))])
 
 
 # Proceso de entrenamiento en tres pasos: 1.-Capas de salida - 2.-Capa convolucional - 3.-Todas las capas
@@ -221,8 +227,7 @@ model_history = model.fit(train_batches, epochs=EPOCHS,
                           steps_per_epoch=STEPS_PER_EPOCH,
                           validation_steps=VALIDATION_STEPS,
                           validation_data=test_batches,
-                          #callbacks=[DisplayCallback()]
-                          )
+                          callbacks=[DisplayCallback()])
 
 loss = model_history.history['loss']
 val_loss = model_history.history['val_loss']
