@@ -180,3 +180,11 @@ def unet_model(output_channels:int):
   x = last(x)
 
   return tf.keras.Model(inputs=inputs, outputs=x)
+
+# Construcción y compilación del modelo
+OUTPUT_CLASSES = 2
+
+model = unet_model(output_channels=OUTPUT_CLASSES)
+model.compile(optimizer='adam',
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+              metrics=['accuracy'])
