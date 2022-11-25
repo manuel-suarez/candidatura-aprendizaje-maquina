@@ -30,6 +30,7 @@ y_files.sort()
 x_files=np.array(x_files)
 y_files=np.array(y_files)
 
+
 # Verificamos las primeras 5 entradas para identificar si corresponden al mismo escenario
 for xfile, yfile in zip(x_files[:5], y_files[:5]):
   print(xfile, yfile)
@@ -469,7 +470,7 @@ def fit(train_xy, test_xy, steps):
 
     return history
 
-history = fit(train_xy, test_xy, steps=5000)
+history = fit(train_xy, test_xy, steps=1000)
 
 # Visualización de gráficas del entrenamiento
 fig, ax = plt.subplots(2, 2, figsize=(10,6))
@@ -492,4 +493,31 @@ checkpoint.restore(chkpnt)
 step = 1
 for x, y in test_xy.take(8):
     generate_images(f"testing_step{step}.png", generator, x, y)
+    step += 1
+
+# Dehaze de imágenes reales
+real_dir = '/home/est_posgrado_manuel.suarez/data/ReDWeb-S/real'
+xr_files  = glob(os.path.join(real_dir, 'RGB', '*.jpg'))
+yr_files  = glob(os.path.join(real_dir, 'RGB', '*.jpg'))
+xr_files.sort()
+yr_files.sort()
+xr_files=np.array(xr_files)
+yr_files=np.array(yr_files)
+
+real_x = tf.data.Dataset.list_files(xr_files, shuffle=False)
+real_y = tf.data.Dataset.list_files(yr_files, shuffle=False)
+
+real_xy = tf.data.Dataset.zip((real_x, real_y))
+real_xy = real_xy.shuffle(buffer_size=idx, reshuffle_each_iteration=True)
+real_xy = real_xy.map(load_images, num_parallel_calls=tf.data.AUTOTUNE)
+real_xy = real_xy.batch(1)
+
+# Verificación de carga de archivos por medio de la definición de los Dataset
+for x, y in real_xy.take(1):
+    display_images("real_images.png", x, y, rows=3)
+    break
+
+step = 1
+for x, y in test_xy.take(5):
+    generate_images(f"real_dehaze{step}.png", generator, x, y)
     step += 1
